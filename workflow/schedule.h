@@ -2,6 +2,18 @@
 #include "graph.h"
 
 
+class JobMakespanCompare {
+private:
+    WorkflowGraph* graph;
+public:
+    JobMakespanCompare(WorkflowGraph* _graph): graph(_graph) {}
+
+    bool operator()(Job* j1, Job* j2) {
+        return graph->getJobMaxMakespan(j1) < graph->getJobMaxMakespan(j2);
+    }
+};
+
+
 class WorkflowSchedule {
 private:
     WorkflowGraph* graph;
@@ -12,24 +24,25 @@ public:
     std::vector<Job*> topologicalSort() {
         std::unordered_map<Job*, int> inDegrees = graph->getIndegrees();
         
-        std::queue<Job*> q;
+        JobMakespanCompare comparator = JobMakespanCompare(graph);
+        std::priority_queue<Job*, std::vector<Job*>, JobMakespanCompare> pq(comparator);
         for (const auto& inDeg: inDegrees) {
             if (inDeg.second == 0) {
-                q.push(inDeg.first);
+                pq.push(inDeg.first);
             }
         }
 
         std::vector<Job*> topOrder;
-        while (!q.empty()) {
-            Job* front = q.front();
-            q.pop();
+        while (!pq.empty()) {
+            Job* front = pq.top();
+            pq.pop();
             topOrder.emplace_back(front);
 
             for (const auto& job: graph->getSuccessors(front)) {
                 inDegrees[job]--;
 
                 if (inDegrees[job] == 0) {
-                    q.push(job);
+                    pq.push(job);
                 }
             }
         }
@@ -65,8 +78,8 @@ public:
             jobFinishTime[job] = earliestStartTime + job->executionTime;
         }
 
-        int min_time = *std::max_element(machineFinishTime.begin(), machineFinishTime.end());
+        int makespan = *std::max_element(machineFinishTime.begin(), machineFinishTime.end());
 
-        return {min_time, topOrder};
+        return {makespan, topOrder};
     }
 };

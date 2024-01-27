@@ -15,7 +15,7 @@ Comment on the difficulty (i.e., the problem's computational complexity)
 of the above problem, design an efficient algorithm, analyze your algorithm's
 time complexity, implement the solution, (which may be an exact, approximation,
 or heuristic algorithm), and show the execution results.
-(C/C++ in Linux andMakefile are required.)
+(C/C++ in Linux and Makefile are required.)
 
 I do not expect a perfect solution from you. Based on your source code
 and algorithm description, I will evaluate

@@ -99,6 +99,17 @@ public:
         return inDegrees;
     }
 
+    int getJobMaxMakespan(Job* job) {
+        int time = 0;
+        for(const auto& comm: getOutCommunications(job)) {
+            if (comm->commTime > time) {
+                time = comm->commTime;
+            }
+        }
+        time += job->executionTime;
+        return time;
+    }
+
     void printWorkflow() {
         for (const auto& job : jobs) {
             std::cout << "Job: " << job.first << " (Execution Time: " << job.second->executionTime << "):\n";
