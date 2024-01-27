@@ -54,17 +54,11 @@ public:
         std::unordered_map<Job*, int> jobFinishTime;
 
         for (const auto& job: topOrder) {
-            std::vector<Communication*> inCommunications = graph->getInCommunications(job);
-
             int earliestMachine = getEarliestMachine(machineFinishTime);
 
-            int earliestStartTime = 0;
-            for (const Communication* comm: inCommunications) {
-                auto inJobTimeMap = jobFinishTime.find(comm->fromJob);
-                int inJobFinishTime = (inJobTimeMap == jobFinishTime.end())? 0: inJobTimeMap->second;
-                inJobFinishTime = std::max(inJobFinishTime + comm->commTime, machineFinishTime[earliestMachine]);
-
-                earliestStartTime = std::max(earliestStartTime, inJobFinishTime);
+            int earliestStartTime = machineFinishTime[earliestMachine];
+            for (const Communication* comm: graph->getInCommunications(job)) {
+                earliestStartTime = std::max(earliestStartTime, jobFinishTime[comm->fromJob] + comm->commTime);
             }
 
             machineFinishTime[earliestMachine] = earliestStartTime + job->executionTime;
