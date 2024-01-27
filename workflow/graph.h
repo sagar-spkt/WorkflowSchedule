@@ -27,6 +27,18 @@ private:
     std::unordered_map<std::string, Job*> jobs;
     std::unordered_map<Job*, std::vector<Communication*>> communications;
 public:
+    ~WorkflowGraph() {
+        for (auto& job : jobs) {
+            delete job.second;
+        }
+
+        for (auto& cpair : communications) {
+            for (auto& comm : cpair.second) {
+                delete comm;
+            }
+        }
+    }
+
     void addJob(std::string name, int executionTime) {
         jobs[name] = new Job(name, executionTime);
         communications[jobs[name]] = std::vector<Communication*>();
