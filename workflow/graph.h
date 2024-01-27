@@ -65,11 +65,7 @@ public:
     }
 
     std::vector<Communication*> getOutCommunications(Job* job) {
-        std::vector<Communication*> outCommunications;
-        for (const auto& comm: communications[job]) {
-            outCommunications.emplace_back(comm);
-        }
-        return outCommunications;
+        return communications[job];
     }
 
     std::vector<Job*> getPredecessors(Job* job) {
