@@ -62,7 +62,7 @@ public:
             for (const Communication* comm: inCommunications) {
                 auto inJobTimeMap = jobFinishTime.find(comm->fromJob);
                 int inJobFinishTime = (inJobTimeMap == jobFinishTime.end())? 0: inJobTimeMap->second;
-                inJobFinishTime = std::max(inJobFinishTime, machineFinishTime[earliestMachine]) + comm->commTime;
+                inJobFinishTime = std::max(inJobFinishTime + comm->commTime, machineFinishTime[earliestMachine]);
 
                 earliestStartTime = std::max(earliestStartTime, inJobFinishTime);
             }
