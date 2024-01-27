@@ -8,7 +8,6 @@
 struct Job {
     std::string name;
     int executionTime;
-    Job() {}
     Job(std::string _name, int _executionTime): name(_name), executionTime(_executionTime) {}
 };
 
@@ -17,7 +16,6 @@ struct Communication {
     Job* fromJob;
     Job* toJob;
     int commTime;
-    Communication() {}
     Communication(Job* _fromJob, Job* _toJob, int _commTime): fromJob(_fromJob), toJob(_toJob), commTime(_commTime) {}
 };
 
@@ -46,10 +44,6 @@ public:
 
     void addCommunication(std::string fromJobName, std::string toJobName, int commTime) {
         communications[jobs[fromJobName]].emplace_back(new Communication(jobs[fromJobName], jobs[toJobName], commTime));
-    }
-
-    Job* getJob(std::string name) {
-        return jobs[name];
     }
 
     std::vector<Communication*> getInCommunications(Job* job) {
