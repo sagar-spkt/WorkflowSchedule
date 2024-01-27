@@ -47,10 +47,10 @@ int main() {
     graph.addCommunication("G", "H", 2);
     graph.printWorkflow();
 
-    WorkflowSchedule schedule(graph, 2);
+    WorkflowSchedule schedule(&graph, 2);
     auto res = schedule.schedule();
-    for (const auto& jobName: res.second) {
-        std::cout << jobName << "-->";
+    for (const auto& job: res.second) {
+        std::cout << job->name << "-->";
     }
     std::cout << "\n\tMin Time: " << res.first;
     return 0;

@@ -4,32 +4,32 @@
 
 class WorkflowSchedule {
 private:
-    WorkflowGraph graph;
+    WorkflowGraph* graph;
     int numMachines;
 public:
-    WorkflowSchedule(WorkflowGraph _graph, int _numMachines): graph(_graph), numMachines(_numMachines) {}
+    WorkflowSchedule(WorkflowGraph* _graph, int _numMachines): graph(_graph), numMachines(_numMachines) {}
 
-    std::vector<std::string> topologicalSort() {
-        std::unordered_map<std::string, int> inDegrees = graph.getIndegrees();
+    std::vector<Job*> topologicalSort() {
+        std::unordered_map<Job*, int> inDegrees = graph->getIndegrees();
         
-        std::queue<std::string> q;
+        std::queue<Job*> q;
         for (const auto& inDeg: inDegrees) {
             if (inDeg.second == 0) {
                 q.push(inDeg.first);
             }
         }
 
-        std::vector<std::string> topOrder;
+        std::vector<Job*> topOrder;
         while (!q.empty()) {
-            std::string front = q.front();
+            Job* front = q.front();
             q.pop();
             topOrder.emplace_back(front);
 
-            for (const auto& job: graph.getSuccessors(front)) {
-                inDegrees[job.name]--;
+            for (const auto& job: graph->getSuccessors(front)) {
+                inDegrees[job]--;
 
-                if (inDegrees[job.name] == 0) {
-                    q.push(job.name);
+                if (inDegrees[job] == 0) {
+                    q.push(job);
                 }
             }
         }
@@ -37,7 +37,7 @@ public:
         return topOrder;
     }
 
-    static int getEarliestMachine(std::vector<int> machineFinishTime) {
+    static int getEarliestMachine(std::vector<int>& machineFinishTime) {
         int earliestMachine = 0;
         for (int i = 1; i < machineFinishTime.size(); i++) {
             if (machineFinishTime[i] < machineFinishTime[earliestMachine]) {
@@ -47,29 +47,28 @@ public:
         return earliestMachine;
     }
 
-    std::pair<int, std::vector<std::string>> schedule() {
-        std::vector<std::string> topOrder = topologicalSort();
+    std::pair<int, std::vector<Job*>> schedule() {
+        std::vector<Job*> topOrder = topologicalSort();
 
         std::vector<int> machineFinishTime(numMachines, 0);
-        std::unordered_map<std::string, int> jobFinishTime;
+        std::unordered_map<Job*, int> jobFinishTime;
 
-        for (const auto& jobName: topOrder) {
-            Job currJob = graph.getJob(jobName);
-            std::vector<Communication> inCommunications = graph.getInCommunications(jobName);
+        for (const auto& job: topOrder) {
+            std::vector<Communication*> inCommunications = graph->getInCommunications(job);
 
             int earliestMachine = getEarliestMachine(machineFinishTime);
 
             int earliestStartTime = 0;
-            for (const Communication& comm: inCommunications) {
-                auto inJobTimeMap = jobFinishTime.find(comm.fromJob.name);
+            for (const Communication* comm: inCommunications) {
+                auto inJobTimeMap = jobFinishTime.find(comm->fromJob);
                 int inJobFinishTime = (inJobTimeMap == jobFinishTime.end())? 0: inJobTimeMap->second;
-                inJobFinishTime = std::max(inJobFinishTime, machineFinishTime[earliestMachine]) + comm.commTime;
+                inJobFinishTime = std::max(inJobFinishTime, machineFinishTime[earliestMachine]) + comm->commTime;
 
                 earliestStartTime = std::max(earliestStartTime, inJobFinishTime);
             }
 
-            machineFinishTime[earliestMachine] = earliestStartTime + currJob.executionTime;
-            jobFinishTime[jobName] = earliestStartTime + currJob.executionTime;
+            machineFinishTime[earliestMachine] = earliestStartTime + job->executionTime;
+            jobFinishTime[job] = earliestStartTime + job->executionTime;
         }
 
         int min_time = *std::max_element(machineFinishTime.begin(), machineFinishTime.end());
