@@ -64,7 +64,7 @@ public:
         return inCommunications;
     }
 
-    std::vector<Communication*> getOutCommunications(Job* job) {
+    std::vector<Communication*>& getOutCommunications(Job* job) {
         return communications[job];
     }
 
