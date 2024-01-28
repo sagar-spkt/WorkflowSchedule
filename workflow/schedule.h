@@ -26,6 +26,16 @@ public:
     }
 };
 
+
+struct ScheduledJob {
+    Job* job;
+    int machineId;
+    int startTime;
+    ScheduledJob(Job* _job, int _machineId, int _startTime): job(_job), machineId(_machineId), startTime(_startTime) {}
+};
+typedef std::vector<ScheduledJob> ScheduleOrder;
+
+
 // Represents a schedule for a workflow on multiple machines.
 class WorkflowSchedule {
 private:
@@ -93,7 +103,8 @@ public:
      * Schedules the workflow on multiple machines and calculates the makespan.
      * @return Pair containing the makespan and a vector of Job representing the schedule order
      */
-    std::pair<int, std::vector<Job*>> schedule() {
+    std::pair<int, ScheduleOrder> schedule() {
+        ScheduleOrder scheduleOrder;
         std::vector<Job*> topOrder = topologicalSort();
 
         std::vector<int> machineFinishTime(numMachines, 0);
@@ -109,6 +120,8 @@ public:
 
             machineFinishTime[earliestMachine] = earliestStartTime + job->executionTime;
             jobFinishTime[job] = earliestStartTime + job->executionTime;
+
+            scheduleOrder.emplace_back(ScheduledJob(job, earliestMachine, earliestStartTime));
         }
 
         int makespan = 0;
@@ -118,6 +131,6 @@ public:
             }
         }
 
-        return {makespan, topOrder};
+        return {makespan, scheduleOrder};
     }
 };
