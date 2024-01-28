@@ -30,8 +30,10 @@ public:
 struct ScheduledJob {
     Job* job;
     int machineId;
+    int scheduleTime;
     int startTime;
-    ScheduledJob(Job* _job, int _machineId, int _startTime): job(_job), machineId(_machineId), startTime(_startTime) {}
+    int finishTime;
+    ScheduledJob(Job* _job, int _machineId, int _scheduleTime, int _startTime, int _finishTime): job(_job), machineId(_machineId), scheduleTime(_scheduleTime), startTime(_startTime), finishTime(_finishTime) {}
 };
 typedef std::vector<ScheduledJob> ScheduleOrder;
 
@@ -118,10 +120,14 @@ public:
                 earliestStartTime = std::max(earliestStartTime, jobFinishTime[comm->fromJob] + comm->commTime);
             }
 
-            machineFinishTime[earliestMachine] = earliestStartTime + job->executionTime;
-            jobFinishTime[job] = earliestStartTime + job->executionTime;
+            int earliestFinishTime = earliestStartTime + job->executionTime;
 
-            scheduleOrder.emplace_back(ScheduledJob(job, earliestMachine, earliestStartTime));
+            scheduleOrder.emplace_back(
+                ScheduledJob(job, earliestMachine, machineFinishTime[earliestMachine], earliestStartTime, earliestFinishTime)
+            );
+
+            machineFinishTime[earliestMachine] = earliestFinishTime;
+            jobFinishTime[job] = earliestFinishTime;
         }
 
         int makespan = 0;

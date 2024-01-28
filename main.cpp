@@ -75,8 +75,8 @@ int main() {
     // Print the scheduled order of jobs and the minimum time
     std::cout << "Scheduled Order:\n";
     for (const auto& scheduledJob: res.second) {
-        std::cout << "\t\"" << scheduledJob.job->name << "\" at machine " << scheduledJob.machineId << " at time " << scheduledJob.startTime;
-        std::cout << "\t" << std::endl;
+        std::cout << " Schedule Job \"" << scheduledJob.job->name << "\" at machine " << scheduledJob.machineId << " at time " << scheduledJob.scheduleTime << " where execution starts at " << scheduledJob.startTime << " and finishes at " << scheduledJob.finishTime;
+        std::cout << std::endl;
     }
     std::cout << "\nMinimum time to complete workflow: " << res.first << std::endl;
 
