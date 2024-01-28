@@ -34,3 +34,7 @@ clean:
 .PHONY: run
 run: $(BUILD_DIR)/$(TARGET)
 	./$(BUILD_DIR)/$(TARGET)
+
+# "make all" target to clean, (build,) and run
+.PHONY: all
+all: clean run
