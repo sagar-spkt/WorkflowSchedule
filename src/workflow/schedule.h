@@ -60,6 +60,8 @@ public:
     std::vector<Job*> topologicalSort() {
         std::unordered_map<Job*, int> inDegrees = graph->getIndegrees();
         
+        // Use priority queue so that among the jobs that can be run simultaneously,
+        // highest priority job based in the comparator defined below will be scheduled first.
         JobMakespanCompare comparator = JobMakespanCompare(graph);
         std::priority_queue<Job*, std::vector<Job*>, JobMakespanCompare> pq(comparator);
         for (const auto& inDeg: inDegrees) {
@@ -103,6 +105,7 @@ public:
 
     /**
      * Schedules the workflow on multiple machines and calculates the makespan.
+     * Based on the topological order of the graph, job is scheduled in the earliest available machine.
      * @return Pair containing the makespan and a vector of Job representing the schedule order
      */
     std::pair<int, ScheduleOrder> schedule() {
@@ -111,12 +114,17 @@ public:
 
         std::vector<int> machineFinishTime(numMachines, 0);
         std::unordered_map<Job*, int> jobFinishTime;
+        std::unordered_map<Job*, int> job2machineMap;
 
         for (const auto& job: topOrder) {
             int earliestMachine = getEarliestMachine(machineFinishTime);
 
             int earliestStartTime = machineFinishTime[earliestMachine];
             for (const Communication* comm: graph->getInCommunications(job)) {
+                if (earliestMachine == job2machineMap[comm->fromJob]) {
+                    // if predecessor job was executed in the same machine, no communication time is needed.
+                    continue;
+                }
                 earliestStartTime = std::max(earliestStartTime, jobFinishTime[comm->fromJob] + comm->commTime);
             }
 
@@ -128,6 +136,7 @@ public:
 
             machineFinishTime[earliestMachine] = earliestFinishTime;
             jobFinishTime[job] = earliestFinishTime;
+            job2machineMap[job] = earliestMachine;
         }
 
         int makespan = 0;
