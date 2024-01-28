@@ -1,26 +1,50 @@
 #include <queue>
 #include "graph.h"
 
-
+/**
+ * Functor for comparing jobs based on their makespan.
+ * Used in priority_queue for sorting jobs in decreasing order of job makespan.
+ */
 class JobMakespanCompare {
 private:
-    WorkflowGraph* graph;
+    WorkflowGraph* graph;   ///< Pointer to the WorkflowGraph object
 public:
+    /**
+     * Constructor for JobMakespanCompare.
+     * @param _graph Pointer to the WorkflowGraph object
+     */
     JobMakespanCompare(WorkflowGraph* _graph): graph(_graph) {}
 
+    /**
+     * Comparison operator for jobs based on makespan.
+     * @param j1 Pointer to the first job
+     * @param j2 Pointer to the second job
+     * @return True if makespan of j1 is less than makespan of j2, false otherwise
+     */
     bool operator()(Job* j1, Job* j2) {
         return graph->getJobMaxMakespan(j1) < graph->getJobMaxMakespan(j2);
     }
 };
 
-
+// Represents a schedule for a workflow on multiple machines.
 class WorkflowSchedule {
 private:
-    WorkflowGraph* graph;
-    int numMachines;
+    WorkflowGraph* graph;   ///< Pointer to the WorkflowGraph object
+    int numMachines;        ///< Number of machines available for scheduling
 public:
+    /**
+     * Constructor for WorkflowSchedule.
+     * @param _graph Pointer to the WorkflowGraph object
+     * @param _numMachines Number of machines available for scheduling
+     */
     WorkflowSchedule(WorkflowGraph* _graph, int _numMachines): graph(_graph), numMachines(_numMachines) {}
 
+    /**
+     * Performs a topological sort of the workflow graph.
+     * Among the executable jobs whose all predecessors are completed,
+     * it gives priority to the job with highest makespan. 
+     * @return Vector of Job representing the topological order
+     */
     std::vector<Job*> topologicalSort() {
         std::unordered_map<Job*, int> inDegrees = graph->getIndegrees();
         
@@ -50,6 +74,11 @@ public:
         return topOrder;
     }
 
+    /**
+     * Determines the index of the machine with the earliest finish time.
+     * @param machineFinishTime Vector containing finish times of each machine
+     * @return Index of the machine with the earliest finish time
+     */
     static int getEarliestMachine(std::vector<int>& machineFinishTime) {
         int earliestMachine = 0;
         for (int i = 1; i < machineFinishTime.size(); i++) {
@@ -60,6 +89,10 @@ public:
         return earliestMachine;
     }
 
+    /**
+     * Schedules the workflow on multiple machines and calculates the makespan.
+     * @return Pair containing the makespan and a vector of Job representing the schedule order
+     */
     std::pair<int, std::vector<Job*>> schedule() {
         std::vector<Job*> topOrder = topologicalSort();
 

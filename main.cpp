@@ -24,11 +24,20 @@ and algorithm description, I will evaluate
 3) your code readability (such as code format and necessary comments), algorithm efficiency, and self-learning capacity.
 */
 
+#include <iostream>
 #include "workflow/all.h"
 
-
+/**
+ * Main function for executing the workflow scheduling example.
+ * Creates a WorkflowGraph, adds jobs and communications, prints the workflow,
+ * and then schedules the workflow using WorkflowSchedule and prints the result.
+ * @return 0 on successful execution
+ */
 int main() {
+    // Create a WorkflowGraph object
     WorkflowGraph graph;
+
+    // Add jobs and communications to the workflow graph
     graph.addJob("A", 5);
     graph.addJob("B", 3);
     graph.addJob("C", 8);
@@ -45,13 +54,23 @@ int main() {
     graph.addCommunication("E", "G", 1);
     graph.addCommunication("F", "G", 2);
     graph.addCommunication("G", "H", 2);
+
+    // Print the workflow
+    std::cout << "Workflow Graph:\n";
     graph.printWorkflow();
 
+    // Create a WorkflowSchedule object with 2 machines
     WorkflowSchedule schedule(&graph, 2);
+
+    // Schedule the workflow and get the result
     auto res = schedule.schedule();
+
+    // Print the scheduled order of jobs and the minimum time
+    std::cout << "Scheduled Order: ";
     for (const auto& job: res.second) {
         std::cout << job->name << "-->";
     }
     std::cout << "\n\tMin Time: " << res.first;
+
     return 0;
 }
