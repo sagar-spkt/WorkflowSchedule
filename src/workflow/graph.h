@@ -35,7 +35,8 @@ struct Communication {
 class WorkflowGraph {
 private:
     std::unordered_map<std::string, Job*> jobs;  ///< Map of job names to Job objects
-    std::unordered_map<Job*, std::vector<Communication*>> communications;  ///< Map of jobs to their outgoing communications
+    std::unordered_map<Job*, std::vector<Communication*>> inCommunications;  ///< Map of jobs to their incoming communications
+    std::unordered_map<Job*, std::vector<Communication*>> outCommunications;  ///< Map of jobs to their outgoing communications
 public:
     /**
      * Destructor for WorkflowGraph class.
@@ -46,7 +47,13 @@ public:
             delete job.second;
         }
 
-        for (auto& cpair : communications) {
+        for (auto& cpair : inCommunications) {
+            for (auto& comm : cpair.second) {
+                delete comm;
+            }
+        }
+
+        for (auto& cpair : outCommunications) {
             for (auto& comm : cpair.second) {
                 delete comm;
             }
@@ -60,7 +67,8 @@ public:
      */
     void addJob(std::string name, int executionTime) {
         jobs[name] = new Job(name, executionTime);
-        communications[jobs[name]] = std::vector<Communication*>();
+        inCommunications[jobs[name]] = std::vector<Communication*>();
+        outCommunications[jobs[name]] = std::vector<Communication*>();
     }
 
     /**
@@ -70,7 +78,9 @@ public:
      * @param commTime Time taken for communication between jobs
      */
     void addCommunication(std::string fromJobName, std::string toJobName, int commTime) {
-        communications[jobs[fromJobName]].emplace_back(new Communication(jobs[fromJobName], jobs[toJobName], commTime));
+        Communication* newCommunication = new Communication(jobs[fromJobName], jobs[toJobName], commTime);
+        inCommunications[jobs[toJobName]].emplace_back(newCommunication);
+        outCommunications[jobs[fromJobName]].emplace_back(newCommunication);
     }
 
     /**
@@ -78,16 +88,8 @@ public:
      * @param job The job for which incoming communications are to be retrieved
      * @return Vector of Communication representing incoming communications
      */
-    std::vector<Communication*> getInCommunications(Job* job) {
-        std::vector<Communication*> inCommunications;
-        for (const auto& jpair: jobs) {
-            for (const auto& comm: communications[jpair.second]) {
-                if (comm->toJob == job) {
-                    inCommunications.emplace_back(comm);
-                }
-            }
-        }
-        return inCommunications;
+    std::vector<Communication*>& getInCommunications(Job* job) {
+        return inCommunications[job];
     }
 
     /**
@@ -96,7 +98,7 @@ public:
      * @return Vector of Communication representing outgoing communications
      */
     std::vector<Communication*>& getOutCommunications(Job* job) {
-        return communications[job];
+        return outCommunications[job];
     }
 
     /**
@@ -131,14 +133,8 @@ public:
      */
     std::unordered_map<Job*, int> getIndegrees() {
         std::unordered_map<Job*, int> inDegrees;
-        for (const auto& job: jobs) {
-            inDegrees[job.second] = 0;
-        }
-
-        for (const auto& comm: communications) {
-            for (const auto& j: comm.second) {
-                inDegrees[j->toJob]++;
-            }
+        for (const auto& cpair: inCommunications) {
+            inDegrees[cpair.first] = cpair.second.size();
         }
 
         return inDegrees;
@@ -150,7 +146,7 @@ public:
     void printWorkflow() {
         for (const auto& job : jobs) {
             std::cout << "Job: " << job.first << " (Execution Time: " << job.second->executionTime << "):\n";
-            for (const auto& communication : communications[job.second]) {
+            for (const auto& communication : outCommunications[job.second]) {
                 std::cout << "\t-> " << communication->toJob->name << " (Communication Time: " << communication->commTime << ")\n";
             }
             std::cout << std::endl;
