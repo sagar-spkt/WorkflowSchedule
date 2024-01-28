@@ -39,21 +39,28 @@ int main() {
 
     // Add jobs and communications to the workflow graph
     graph.addJob("A", 5);
-    graph.addJob("B", 3);
-    graph.addJob("C", 8);
-    graph.addJob("D", 4);
+    graph.addJob("B", 4);
+    graph.addJob("C", 4);
+    graph.addJob("D", 7);
     graph.addJob("E", 2);
-    graph.addJob("F", 1);
-    graph.addJob("G", 7);
+    graph.addJob("F", 9);
+    graph.addJob("G", 6);
     graph.addJob("H", 3);
-    graph.addCommunication("A", "D", 2);
-    graph.addCommunication("B", "D", 1);
-    graph.addCommunication("C", "D", 5);
-    graph.addCommunication("D", "E", 3);
-    graph.addCommunication("D", "F", 4);
-    graph.addCommunication("E", "G", 1);
+    graph.addJob("I", 8);
+    graph.addCommunication("A", "D", 5);
+    graph.addCommunication("A", "F", 3);
+    graph.addCommunication("B", "E", 4);
+    graph.addCommunication("B", "F", 2);
+    graph.addCommunication("C", "B", 2);
+    graph.addCommunication("C", "G", 6);
+    graph.addCommunication("D", "E", 9);
+    graph.addCommunication("D", "H", 1);
+    graph.addCommunication("D", "I", 8);
+    graph.addCommunication("E", "F", 4);
     graph.addCommunication("F", "G", 2);
-    graph.addCommunication("G", "H", 2);
+    graph.addCommunication("H", "I", 5);
+    graph.addCommunication("I", "C", 7);
+    graph.addCommunication("I", "F", 1);
 
     // Print the workflow
     std::cout << "Workflow Graph:\n";
