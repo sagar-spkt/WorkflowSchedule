@@ -10,22 +10,29 @@ The project includes an algorithm implementation to find the minimum execution t
 
 ```
 .
+├── docs
+│   └── *
 ├── .gitignore
-├── main.cpp
 ├── Makefile
-└── workflow
-    ├── all.h
-    ├── graph.h
-    └── schedule.h
+├── README.md
+└── src
+    ├── main.cpp
+    └── workflow
+        ├── all.h
+        ├── graph.h
+        └── schedule.h
 ```
 
+- **docs/\***: Documentation for algorithm analysis, design, and implementation.
 - **.gitignore**: Configuration file for Git to ignore certain files or directories.
-- **main.cpp**: The main program demonstrating the workflow optimization problem.
 - **Makefile**: A makefile for compiling and building the project.
-- **workflow**
-  - **all.h**: Header file for including all workflow-related components.
-  - **graph.h**: Header file containing the definitions for the workflow graph and related structures.
-  - **schedule.h**: Header file with classes for scheduling the workflow on multiple machines.
+- **README.md**: This file is what you think it is.
+- **src**
+  - **main.cpp**: The main program demonstrating the workflow optimization problem.
+  - **workflow**
+    - **all.h**: Header file for including all workflow-related components.
+    - **graph.h**: Header file containing the definitions for the workflow graph and related structures.
+    - **schedule.h**: Header file with classes for scheduling the workflow on multiple machines.
 
 ## Build and Run
 

@@ -1,13 +1,13 @@
 # Compiler and Compiler Flags
 CXX = g++
-CXXFLAGS = -std=c++11 -I workflow
+CXXFLAGS = -std=c++11 -I src/workflow
 
 # Source and Build Directories
-SRC_DIR = .
+SRC_DIR = src
 BUILD_DIR = build
 
 # Source Files and Object Files
-SRCS = $(wildcard $(SRC_DIR)/*.cpp)
+SRCS = $(wildcard $(SRC_DIR)/*.cpp) $(wildcard $(SRC_DIR)/workflow/*.h)
 OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 
 # Target executable
