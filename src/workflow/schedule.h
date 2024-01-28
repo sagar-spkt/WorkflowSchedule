@@ -2,41 +2,80 @@
 #include "graph.h"
 
 /**
- * Functor for comparing jobs based on their makespan.
- * Used in priority_queue for sorting jobs in decreasing order of job makespan.
+ * Functor for comparing jobs based on their priority with respect to criticality.
+ * Used in priority_queue for sorting jobs in decreasing order of job criticality.
  */
-class JobMakespanCompare {
+class JobCriticalityCompare {
 private:
     WorkflowGraph* graph;   ///< Pointer to the WorkflowGraph object
+    std::unordered_map<Job*, int> jobCriticalWeights;  ///< Maximum sum of job execution and communication time from the job to terminal job
 public:
     /**
-     * Constructor for JobMakespanCompare.
+     * Constructor for JobCriticalityCompare.
      * @param _graph Pointer to the WorkflowGraph object
      */
-    JobMakespanCompare(WorkflowGraph* _graph): graph(_graph) {}
+    JobCriticalityCompare(WorkflowGraph* _graph): graph(_graph) {}
 
     /**
-     * Comparison operator for jobs based on makespan.
+     * Get the critical weight of a job, considering maximum execution and communication times
+     * among all the paths from the specified job to the terminal job.
+     * @param job Strating job
+     * @return Maximum sum of job execution and communication time from the job to terminal job
+     */
+    int getJobCriticalWeight(Job* job) {
+        // if precalculated return it
+        auto jobCriticalWeightPtr = jobCriticalWeights.find(job);
+        if (jobCriticalWeightPtr != jobCriticalWeights.end()) {
+            return jobCriticalWeightPtr->second;
+        }
+
+        int jobCriticalWeight = 0;
+        for (const auto& comm: graph->getOutCommunications(job)) {
+            int currJobCriticalWeight = comm->commTime + getJobCriticalWeight(comm->toJob);
+            if (jobCriticalWeight < currJobCriticalWeight) {
+                jobCriticalWeight = currJobCriticalWeight;
+            }
+        }
+        jobCriticalWeight += job->executionTime;
+        
+        // store so that recalculation can be avoided.
+        jobCriticalWeights[job] = jobCriticalWeight;
+        return jobCriticalWeight;
+    }
+
+    /**
+     * Comparison operator for jobs based on criticality.
      * @param j1 Pointer to the first job
      * @param j2 Pointer to the second job
-     * @return True if makespan of j1 is less than makespan of j2, false otherwise
+     * @return True if j1 is less critical than j2, false otherwise
      */
     bool operator()(Job* j1, Job* j2) {
-        return graph->getJobMaxMakespan(j1) < graph->getJobMaxMakespan(j2);
+        return getJobCriticalWeight(j1) < getJobCriticalWeight(j2);
     }
 };
 
-
+/**
+ * Represents a scheduled job, including information about the machine, scheduling time, start time, and finish time.
+ */
 struct ScheduledJob {
-    Job* job;
-    int machineId;
-    int scheduleTime;
-    int startTime;
-    int finishTime;
-    ScheduledJob(Job* _job, int _machineId, int _scheduleTime, int _startTime, int _finishTime): job(_job), machineId(_machineId), scheduleTime(_scheduleTime), startTime(_startTime), finishTime(_finishTime) {}
+    Job* job;            ///< Pointer to the job
+    int machineId;       ///< ID of the machine
+    int scheduleTime;    ///< Time when the job is scheduled in the machine
+    int startTime;       ///< Start time of job execution
+    int finishTime;      ///< Finish time of job execution
+
+    /**
+     * Constructor for ScheduledJob.
+     * @param _job Pointer to the Job object
+     * @param _machineId ID of the machine
+     * @param _scheduleTime Time when the job is scheduled
+     * @param _startTime Start time of job execution
+     * @param _finishTime Finish time of job execution
+     */
+    ScheduledJob(Job* _job, int _machineId, int _scheduleTime, int _startTime, int _finishTime):
+        job(_job), machineId(_machineId), scheduleTime(_scheduleTime), startTime(_startTime), finishTime(_finishTime) {}
 };
 typedef std::vector<ScheduledJob> ScheduleOrder;
-
 
 // Represents a schedule for a workflow on multiple machines.
 class WorkflowSchedule {
@@ -62,8 +101,8 @@ public:
         
         // Use priority queue so that among the jobs that can be run simultaneously,
         // highest priority job based in the comparator defined below will be scheduled first.
-        JobMakespanCompare comparator = JobMakespanCompare(graph);
-        std::priority_queue<Job*, std::vector<Job*>, JobMakespanCompare> pq(comparator);
+        JobCriticalityCompare comparator = JobCriticalityCompare(graph);
+        std::priority_queue<Job*, std::vector<Job*>, JobCriticalityCompare> pq(comparator);
         for (const auto& inDeg: inDegrees) {
             if (inDeg.second == 0) {
                 pq.push(inDeg.first);
@@ -106,7 +145,7 @@ public:
     /**
      * Schedules the workflow on multiple machines and calculates the makespan.
      * Based on the topological order of the graph, job is scheduled in the earliest available machine.
-     * @return Pair containing the makespan and a vector of Job representing the schedule order
+     * @return Pair containing the makespan and a vector of Job along with scheduling information representing the schedule order
      */
     std::pair<int, ScheduleOrder> schedule() {
         ScheduleOrder scheduleOrder;
@@ -119,6 +158,7 @@ public:
         for (const auto& job: topOrder) {
             int earliestMachine = getEarliestMachine(machineFinishTime);
 
+            // Earliest start time is maximum of machine finish time and max weight time from predecessors.
             int earliestStartTime = machineFinishTime[earliestMachine];
             for (const Communication* comm: graph->getInCommunications(job)) {
                 if (earliestMachine == job2machineMap[comm->fromJob]) {

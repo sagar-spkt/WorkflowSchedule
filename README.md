@@ -4,7 +4,7 @@ This C++ project is designed to solve the optimization problem of finding the mi
 
 ## Workflow Optimization Algorithm
 
-The project includes an algorithm implementation to find the minimum execution time of the workflow along with a feasible schedule for mapping jobs onto machines. The algorithm uses a topological sort with a priority queue among executable(unblocking) jobs giving higher priority to the job that takes maximum time to execute and communicate with successor jobs. It uses scheduling approach that assigns jobs to the machine available earliest.
+The project includes an algorithm implementation to find the minimum execution time of the workflow along with a feasible schedule for mapping jobs onto machines. The algorithm uses a topological sort with a priority queue among executable(unblocking) jobs giving higher priority to the job that has maximum critical weight. Here, critical weight of a job is maximum accumulated execution and communication times among all the paths from the specified job to the terminal job. It uses scheduling approach that assigns jobs to the machine available earliest.
 
 ## Directory Structure
 

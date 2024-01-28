@@ -145,23 +145,6 @@ public:
     }
 
     /**
-     * Calculates the maximum makespan for a given job.
-     * It is equal to job execuation time plus the maximum outgoing communication time
-     * @param job The job for which the maximum makespan is to be calculated
-     * @return The maximum makespan for the given job
-     */
-    int getJobMaxMakespan(Job* job) {
-        int time = 0;
-        for(const auto& comm: getOutCommunications(job)) {
-            if (comm->commTime > time) {
-                time = comm->commTime;
-            }
-        }
-        time += job->executionTime;
-        return time;
-    }
-
-    /**
      * Prints the workflow, including job names, execution times, and communication details.
      */
     void printWorkflow() {
