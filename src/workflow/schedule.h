@@ -93,7 +93,7 @@ public:
     /**
      * Performs a topological sort of the workflow graph.
      * Among the executable jobs whose all predecessors are completed,
-     * it gives priority to the job with highest makespan. 
+     * it gives priority to the job with highest critical weight. 
      * @return Vector of Job representing the topological order
      */
     std::vector<Job*> topologicalSort() {
@@ -128,27 +128,12 @@ public:
     }
 
     /**
-     * Determines the index of the machine with the earliest finish time.
-     * @param machineFinishTime Vector containing finish times of each machine
-     * @return Index of the machine with the earliest finish time
-     */
-    static int getEarliestMachine(std::vector<int>& machineFinishTime) {
-        int earliestMachine = 0;
-        for (int i = 1; i < machineFinishTime.size(); i++) {
-            if (machineFinishTime[i] < machineFinishTime[earliestMachine]) {
-                earliestMachine = i;
-            }
-        }
-        return earliestMachine;
-    }
-
-    /**
      * Schedules the workflow on multiple machines and calculates the makespan.
-     * Based on the topological order of the graph, job is scheduled in the earliest available machine.
+     * Based on the topological order of the graph, job is scheduled in the machine where it'll be finished earlier.
      * @return Pair containing the makespan and a vector of Job along with scheduling information representing the schedule order
      */
     std::pair<int, ScheduleOrder> schedule() {
-        ScheduleOrder scheduleOrder;
+        ScheduleOrder scheduleOrder;  // Final scheduling result to return
         std::vector<Job*> topOrder = topologicalSort();
 
         std::vector<int> machineFinishTime(numMachines, 0);
@@ -156,27 +141,42 @@ public:
         std::unordered_map<Job*, int> job2machineMap;
 
         for (const auto& job: topOrder) {
-            int earliestMachine = getEarliestMachine(machineFinishTime);
 
-            // Earliest start time is maximum of machine finish time and max weight time from predecessors.
-            int earliestStartTime = machineFinishTime[earliestMachine];
-            for (const Communication* comm: graph->getInCommunications(job)) {
-                if (earliestMachine == job2machineMap[comm->fromJob]) {
-                    // if predecessor job was executed in the same machine, no communication time is needed.
-                    continue;
+            // Find machine which will finish the current job earliest
+            // First find finish time in each machine along with other information
+            std::vector<ScheduledJob> candidateSchedules;
+            for (int machine = 0; machine<numMachines; machine++) {
+                // Earliest start time is maximum of machine finish time and max weight time from predecessors.
+                int earliestStartTime = machineFinishTime[machine];
+                for (const Communication* comm: graph->getInCommunications(job)) {
+                    if (machine == job2machineMap[comm->fromJob]) {
+                        // if predecessor job was executed in the same machine, no communication time is needed.
+                        continue;
+                    }
+                    earliestStartTime = std::max(earliestStartTime, jobFinishTime[comm->fromJob] + comm->commTime);
                 }
-                earliestStartTime = std::max(earliestStartTime, jobFinishTime[comm->fromJob] + comm->commTime);
+
+                int earliestFinishTime = earliestStartTime + job->executionTime;
+                candidateSchedules.emplace_back(
+                    ScheduledJob(job, machine, machineFinishTime[machine], earliestStartTime, earliestFinishTime)
+                );
             }
 
-            int earliestFinishTime = earliestStartTime + job->executionTime;
+            // Select the best machine and its schedule information
+            ScheduledJob& bestSchedule = candidateSchedules.front();
+            for (auto sch = candidateSchedules.begin(); sch != candidateSchedules.end(); sch++) {
+                if (bestSchedule.finishTime > sch->finishTime) {
+                    bestSchedule = *sch;
+                }
+            }
 
-            scheduleOrder.emplace_back(
-                ScheduledJob(job, earliestMachine, machineFinishTime[earliestMachine], earliestStartTime, earliestFinishTime)
-            );
+            // add the schedule in result schedule order
+            scheduleOrder.emplace_back(bestSchedule);
 
-            machineFinishTime[earliestMachine] = earliestFinishTime;
-            jobFinishTime[job] = earliestFinishTime;
-            job2machineMap[job] = earliestMachine;
+            // log info for next job scheduling
+            machineFinishTime[bestSchedule.machineId] = bestSchedule.finishTime;
+            jobFinishTime[job] = bestSchedule.finishTime;
+            job2machineMap[job] = bestSchedule.machineId;
         }
 
         int makespan = 0;
