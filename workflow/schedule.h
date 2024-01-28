@@ -78,7 +78,12 @@ public:
             jobFinishTime[job] = earliestStartTime + job->executionTime;
         }
 
-        int makespan = *std::max_element(machineFinishTime.begin(), machineFinishTime.end());
+        int makespan = 0;
+        for (const int& mTime: machineFinishTime) {
+            if (makespan < mTime) {
+                makespan = mTime;
+            }
+        }
 
         return {makespan, topOrder};
     }
