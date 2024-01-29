@@ -1,16 +1,20 @@
 # DAG Workflow Scheduling: Design and Analysis
 The goal of the workflow scheduling task is to efficiently allocate jobs, considering their dependencies on each other, to a set of homogeneous machines so that their execution is completed in the minimum amount of time. It is a NP-hard problem due to the numerous possible combinations and dependencies involved. Hence, finding an exact solution becomes intractable in the case of large instances of workflow graphs. However, we can employ some heuristics to solve the problem, though such a solution may not guarantee the optimal solution. The algorithm implemented here is broken into two parts:
+
 1. **Finding Execution Order:** Since some jobs are not executable until all the jobs on which they depend are executed and output from them is received, we need to find the correct order of execution. For finding this order, we use a slightly modified Kahn's topological sorting algorithm. Since it is possible that multiple jobs are available for execution at some point in time, which jobs should be executed first in such a situation? One simple heuristic is to give priority to the job that is the most critical, meaning it has the longest execution time following it. So, instead of an ordinary priority queue in Kahn's algorithm, we use a priority queue that gives priority to the most critical job.
+
 2. **Scheduling Job on Machines:** Once we find the order of execution, we need to schedule them on the limited number of machines. Another simple heuristic employed here is that the job is scheduled on the machine, where it will be finished earlier. This approach may not give an optimal solution as it doesn't foresee future communication overhead.
 
 ### Assumption:
 Some conditions necessary for the algorithm designed are not explicitly stated in the problem statement given. So, the following assumptions are made:
+
 - The communication overhead between jobs is only needed when they are executed on different machines. Otherwise, the communication cost between jobs allocated to the same machine is considered to be zero.
 
 ## Algorithm
 #### Inputs:
    - **Workflow Graph:** Task Scheduling DAG represented using adjacency list along with job execution time and communication overhead.
    - **Number of Machines:** Number of homogenous independent machine available for parallel job execution.
+
 #### Step 1: Finding Critical Weight Jobs
 - The criticality considers maximum execution and communication times among all paths from the job to the terminal job.
 - Use depth first traversal of the graph to find critical weights of all jobs
@@ -56,5 +60,7 @@ Let's break down the major operations and analyze their performance individually
 
 ## Further Improvements:
 Since the problem is an NP-hard problem, we cannot find the optimal scheduling order in an efficient manner. However, there are still some possible improvements to the above implements:
+
 - The execution order finding and job scheduling on machine steps are implemented separately. It may be merged into a single step such that the priority queue used during topological sorting may calculate the priority value based on the information about scheduled jobs on the machine.
+
 - Due to the NP-hardness, the use of search-based and evolutionary approaches such as simulated annealing, genetic algorithms, and hill climing might be more viable. Due to the limited amount of time, implementing these algorithms integrating topological sorting became quite unfeasible.

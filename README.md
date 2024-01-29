@@ -8,6 +8,8 @@ The project includes an algorithm implementation to find the minimum execution t
 
 **[COMPLETE DOCUMENTATION ON ALGORITHM DESIGN AND ANALYSIS CAN BE FOUND HERE](./docs/DESIGN_AND_ANALYSIS.md)**
 
+**[PDF VERSION OF ALGORITHM DESIGN AND ANALYSIS DOCUMENTATION](./docs/DESIGN_AND_ANALYSIS.pdf)**
+
 ## Directory Structure
 
 ```
