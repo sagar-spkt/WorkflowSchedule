@@ -6,6 +6,8 @@ This C++ project is designed to solve the optimization problem of finding the mi
 
 The project includes an algorithm implementation to find the minimum execution time of the workflow along with a feasible schedule for mapping jobs onto machines. The algorithm uses a topological sort with a priority queue among executable(unblocking) jobs giving higher priority to the job that has maximum critical weight. Here, critical weight of a job is maximum accumulated execution and communication time among all the paths from the specified job to the terminal job. It uses scheduling approach that assigns jobs to the machine that complete it earliest. The communication overhead is assumed zero when linked job are scheduled in same machine.
 
+**[COMPLETE DOCUMENTATION ON ALGORITHM DESIGN AND ANALYSIS CAN BE FOUND HERE](./docs/DESIGN_AND_ANALYSIS.md)**
+
 ## Directory Structure
 
 ```
@@ -50,9 +52,15 @@ To run the program, execute:
 make run
 ```
 
-This will execute the compiled `main` program, demonstrating the workflow optimization.
+This will execute the compiled `main` program, demonstrating the workflow optimization. The example used in demonstration is of the following workflow graph and 2 homogeneous machine.
 
-## Cleaning Up
+![Workflow DAG](./docs/images/Workflow%20Graph.png "Workflow DAG")
+
+And, here is the sample output. For the input graph above, even though two machine are available, the algorithm finds out that executing all task sequentially in a single machine is faster because it avoids the communication cost that is required if executed in separate machines. If you run the program removing some communication links, jobs will be sheduled on multiple machine.
+
+![Workflow output](./docs/images/Sample%20Output.png "Workflow output")
+
+#### Cleaning Up
 
 To clean up the build artifacts, run:
 
